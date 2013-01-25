@@ -10,6 +10,11 @@ void interrupt(int sig) {
   stop = true;
 }
 
+void delayMillis(unsigned long millis) {
+  while (millis--)
+    usleep(1000);
+}
+
 int main(int argc, char** argv) {
   signal(SIGINT, interrupt);
   signal(SIGTERM, interrupt);
@@ -37,8 +42,13 @@ int main(int argc, char** argv) {
   g_print ("Now playing\n");
   engine->play();
 
+  // Marchera pas. Pour arranger il faut checker ceci:
+  // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/section-dynamic-pipelines.html
   while (!stop) {
-    usleep(1);
+    delayMillis(1000);
+    out->disconnect(in);
+    delayMillis(1000);
+    out->connect(in);
   }
 
   engine->pause();

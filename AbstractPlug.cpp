@@ -94,9 +94,9 @@ bool AbstractPlug::canConnect(AbstractPlug *plug, bool onlyTypeCheck)
 bool AbstractPlug::connect(AbstractPlug *plug)
 //! logique de connection de base
 {
-
-  if (!canConnect(plug))
-    return false;
+//
+//  if (!canConnect(plug))
+//    return false;
 
   if (this->inOut() == IN)
     gst_pad_link(plug->_pad, _pad);
@@ -143,8 +143,8 @@ bool AbstractPlug::connect(AbstractPlug *plug)
 bool AbstractPlug::disconnect(AbstractPlug *plug)
 //! logique de deconnection de base
 {
-  if (!plug)
-    return false;
+//  if (!plug)
+//    return false;
 
   //on ne peut pas deconnecter une plug qui n'est pas connecte a nous
 //  std::list<AbstractPlug*>::iterator it = find(_connectedPlugs.begin(), _connectedPlugs.end(), plug);
@@ -154,23 +154,29 @@ bool AbstractPlug::disconnect(AbstractPlug *plug)
 //  _parent->onPlugDisconnected(this, plug);
 //  plug->_parent->onPlugDisconnected(plug, this);
 
+
+  if (this->inOut() == IN)
+    gst_pad_unlink(plug->_pad, _pad);
+  else
+    gst_pad_unlink(_pad, plug->_pad);
+
   //laisser la chance au class derive d'executer leur logique supplementaire
   onDisconnection(plug);
   plug->onDisconnection(this);
 
   //remove this plug from our connections
-  _connectedPlugs.remove(plug);
-  AbstractPlug * deepestPlug = 0;
-  for(deepestPlug = this; deepestPlug->_forwardPlug != 0; deepestPlug = deepestPlug->_forwardPlug) ;
-  if(deepestPlug != this)
-    deepestPlug->_connectedPlugs.remove(plug);
-
-  //remove ourself from the other plug connections
-  plug->_connectedPlugs.remove(this);
-  AbstractPlug * deepestOtherPlug = 0;
-  for(deepestOtherPlug = plug; deepestOtherPlug->_forwardPlug != 0; deepestOtherPlug = deepestOtherPlug->_forwardPlug) ;
-  if(deepestOtherPlug != plug)
-    deepestOtherPlug->_connectedPlugs.remove(this);
+//  _connectedPlugs.remove(plug);
+//  AbstractPlug * deepestPlug = 0;
+//  for(deepestPlug = this; deepestPlug->_forwardPlug != 0; deepestPlug = deepestPlug->_forwardPlug) ;
+//  if(deepestPlug != this)
+//    deepestPlug->_connectedPlugs.remove(plug);
+//
+//  //remove ourself from the other plug connections
+//  plug->_connectedPlugs.remove(this);
+//  AbstractPlug * deepestOtherPlug = 0;
+//  for(deepestOtherPlug = plug; deepestOtherPlug->_forwardPlug != 0; deepestOtherPlug = deepestOtherPlug->_forwardPlug) ;
+//  if(deepestOtherPlug != plug)
+//    deepestOtherPlug->_connectedPlugs.remove(this);
 
   return true;
 }
