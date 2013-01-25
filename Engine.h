@@ -21,7 +21,8 @@
 #define ENGINE_H_
 
 #include <gst/gst.h>
-#include <list>
+
+#include "error.h"
 #include "Gear.h"
 
 class Engine {
@@ -32,11 +33,12 @@ public:
   void play();
   void pause();
   void addGear(Gear* gear);
+  void removeGear(Gear* gear);
 
 protected:
   GstPipeline* _pipeline;
 //  GstBus*      _bus;
-  std::list<Gear*> _gears;
+//  std::list<Gear*> _gears;
 };
 
 #endif /* ENGINE_H_ */

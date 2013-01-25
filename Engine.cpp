@@ -40,3 +40,15 @@ void Engine::addGear(Gear* gear) {
   _gears.push_back(gear);
   gst_bin_add(GST_BIN(_pipeline), gear->_element);
 }
+
+void Engine::removeGear(Gear* gear) {
+  // _gear.remove(gear);
+
+  // Remove from pipeline.
+  // Attention: "Unparenting the element means that the element will be dereferenced,
+  // so if the bin holds the only reference to the element, the element will be freed
+  // in the process of removing it from the bin. If you want the element to still exist
+  // after removing, you need to call gst_object_ref() before removing it from the bin. "
+  // Source: http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gstreamer/html/GstBin.html#gst-bin-remove
+  gst_bin_remove(GST_BIN(_pipeline), gear->_element);
+}
