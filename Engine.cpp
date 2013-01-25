@@ -37,7 +37,14 @@ void Engine::pause() {
 }
 
 void Engine::addGear(Gear* gear) {
-  _gears.push_back(gear);
+  //_gears.push_back(gear);
+
+  // State of added element must be the same as current state of pipeline.
+  GstState state;
+  ASSERT_ERROR( gst_element_get_state(GST_ELEMENT(_pipeline), &state, NULL, GST_CLOCK_TIME_NONE) != GST_STATE_CHANGE_FAILURE);
+  gst_element_set_state(gear->_element, state);
+
+  // Add to pipeline.
   gst_bin_add(GST_BIN(_pipeline), gear->_element);
 }
 
