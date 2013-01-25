@@ -28,6 +28,7 @@
 
 #include <map>
 
+#include <gst/gst.h>
 
 /**
  * Gear is the atomic processing unit of the dataflow and the base class for all gears.
@@ -37,7 +38,7 @@
 class Gear
 {
 public:
-  Gear(std::string type, std::string uniqueName);
+  Gear(GstElement* element);
   virtual ~Gear();
 
   void init();
@@ -46,13 +47,16 @@ public:
 
   virtual void run() {}
 
+  void getInputs(std::list<AbstractPlug*> & inputs) const;
+  void getOutputs(std::list<AbstractPlug*> &outputs) const;
+
   AbstractPlug* getInput(std::string name) const;
   AbstractPlug* getOutput(std::string name) const;
 
-  void name(std::string vname){_name=vname;}
+  //  void name(std::string vname){_name=vname;}
 
-  const std::string& type() const {return _type;};
-  const std::string& name() const {return _name;}
+//  const std::string& type() const {return _type;};
+  const std::string name() const { return std::string(GST_ELEMENT_NAME(_element)); }
 
   bool ready(){return _ready;}
 
@@ -70,14 +74,16 @@ protected:
   void deletePlug(AbstractPlug *plug);
 
   std::list<AbstractPlug*> _plugs;    
+
 protected:
 
-  std::string _type;
-  std::string _name;//! unique name of this gear in a schema
-
-private:
+//  std::string _type;
+//  std::string _name;//! unique name of this gear in a schema
 
   bool _ready;
+  GstElement* _element;
+
+  friend class Engine;
 };
 
 #endif

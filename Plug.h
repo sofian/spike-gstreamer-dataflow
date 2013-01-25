@@ -30,8 +30,8 @@ template <class T>
 class PlugOut : public AbstractPlug
 {
 public:
-  PlugOut(Gear* parent, std::string name, bool mandatory, T* type = new T())
-  : AbstractPlug(parent, OUT, name, type, mandatory)
+  PlugOut(GstPad* pad, Gear* parent, std::string name, bool mandatory, T* type = new T())
+  : AbstractPlug(pad, parent, OUT, name, type, mandatory)
   {    
     _forwardPlug = 0;
   }
@@ -56,10 +56,10 @@ public:
 
   void init() {}
 
-  AbstractPlug *clone(Gear* parent)
-  {
-    return new PlugOut<T>(parent, name(), _mandatory);
-  }
+//  AbstractPlug *clone(Gear* parent)
+//  {
+//    return new PlugOut<T>(parent, name(), _mandatory);
+//  }
 
 };
 
@@ -68,8 +68,8 @@ template <class T>
 class PlugIn : public AbstractPlug
 {
 public:
-  PlugIn(Gear* parent, std::string name, bool mandatory, T* type = new T())
-  : AbstractPlug(parent, IN, name, type, mandatory)
+  PlugIn(GstPad* pad, Gear* parent, std::string name, bool mandatory, T* type = new T())
+  : AbstractPlug(pad, parent, IN, name, type, mandatory)
   {
     _forwardPlug = 0;
   }
@@ -89,7 +89,7 @@ public:
       if (_mandatory && !firstConnectedPlug()->parent()->ready())
         return false;
 
-      return !(firstConnectedPlug()->sleeping()); 
+//      return !(firstConnectedPlug()->sleeping());
     }
 
     //not mandatory and not connected
@@ -132,10 +132,10 @@ public:
   //! Returns a clone of the type.
   T* cloneType() const { return _abstractType->clone(); }
 
-  AbstractPlug *clone(Gear* parent)
-  {
-    return new PlugIn<T>(parent, name(), _mandatory);
-  }
+//  AbstractPlug *clone(Gear* parent)
+//  {
+//    return new PlugIn<T>(parent, name(), _mandatory);
+//  }
 
 
 protected:

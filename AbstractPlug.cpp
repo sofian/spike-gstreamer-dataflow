@@ -22,7 +22,7 @@
 
 #include "Gear.h"
 
-AbstractPlug::AbstractPlug(Gear* parent, eInOut inOut, std::string name, AbstractType* type, bool mandatory) :
+AbstractPlug::AbstractPlug(GstPad* pad, Gear* parent, eInOut inOut, std::string name, AbstractType* type, bool mandatory) :
   _abstractType(type),
   _abstractDefaultType(type),
   _parent(parent),
@@ -30,17 +30,21 @@ AbstractPlug::AbstractPlug(Gear* parent, eInOut inOut, std::string name, Abstrac
   _sleeping(false),
   _inOut(inOut),
   _name(name),
-  _exposed(false)
+//  _exposed(false),
+  _pad(pad)
 {
   //une plug a besoin d'un parent
   ASSERT_ERROR(parent!=NULL);
 
   forwardPlug(0);
+
+  gst_object_ref(GST_OBJECT(_pad));
 }
 
 AbstractPlug::~AbstractPlug()
 {
   disconnectAll();
+  gst_object_unref(GST_OBJECT(_pad));
 }
 
 bool AbstractPlug::canConnect(AbstractPlug *plug, bool onlyTypeCheck)
@@ -94,22 +98,27 @@ bool AbstractPlug::connect(AbstractPlug *plug)
   if (!canConnect(plug))
     return false;
 
+  if (this->inOut() == IN)
+    gst_pad_link(plug->_pad, _pad);
+  else
+    gst_pad_link(_pad, plug->_pad);
+
   //remove exposition
-  if(this->inOut() == IN)
-    exposed(false);
+//  if(this->inOut() == IN)
+//    exposed(false);
 
-  if(plug->inOut() == IN)
-    plug->exposed(false);
+//  if(plug->inOut() == IN)
+//    plug->exposed(false);
 
-  AbstractPlug * deepestPlug = 0;
-  for(deepestPlug = this; deepestPlug->_forwardPlug != 0; deepestPlug = deepestPlug->_forwardPlug) ;
-  if(deepestPlug != this)
-    deepestPlug->_connectedPlugs.push_back(plug);
-
-  AbstractPlug * deepestOtherPlug = 0;
-  for(deepestOtherPlug = plug; deepestOtherPlug->_forwardPlug != 0; deepestOtherPlug = deepestOtherPlug->_forwardPlug) ; 
-  if(deepestOtherPlug != plug)
-    deepestOtherPlug->_connectedPlugs.push_back(this);
+//  AbstractPlug * deepestPlug = 0;
+//  for(deepestPlug = this; deepestPlug->_forwardPlug != 0; deepestPlug = deepestPlug->_forwardPlug) ;
+//  if(deepestPlug != this)
+//    deepestPlug->_connectedPlugs.push_back(plug);
+//
+//  AbstractPlug * deepestOtherPlug = 0;
+//  for(deepestOtherPlug = plug; deepestOtherPlug->_forwardPlug != 0; deepestOtherPlug = deepestOtherPlug->_forwardPlug) ;
+//  if(deepestOtherPlug != plug)
+//    deepestOtherPlug->_connectedPlugs.push_back(this);
 
   //ajouter la nouvelle plug a nos connections
   _connectedPlugs.push_back(plug);
@@ -206,16 +215,16 @@ std::string AbstractPlug::shortName(int nbChars) const
 * @param exp The new metagear expose for the plug. The status will remain unchange
 *            if the plug is plug <code>IN</code> type and actually connected.
 */
-void AbstractPlug::exposed(bool exp)
-{
-  if((this->inOut() == IN) && (this->connected()))
-  {
-    return;
-  } else
-  {
-    this->_exposed = exp;
-  }
-}
+//void AbstractPlug::exposed(bool exp)
+//{
+//  if((this->inOut() == IN) && (this->connected()))
+//  {
+//    return;
+//  } else
+//  {
+//    this->_exposed = exp;
+//  }
+//}
 
 bool AbstractPlug::name(std::string newName)
 {

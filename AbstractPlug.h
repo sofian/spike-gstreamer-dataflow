@@ -27,6 +27,8 @@
 #include <string>
 #include <list>
 
+#include <gst/gst.h>
+
 enum eInOut
 {
   IN, OUT
@@ -37,7 +39,7 @@ class Gear;
 class AbstractPlug
 {
 public:
-  AbstractPlug(Gear* parent, eInOut inOut, std::string name, AbstractType* type, bool mandatory);
+  AbstractPlug(GstPad* pad, Gear* parent, eInOut inOut, std::string name, AbstractType* type, bool mandatory);
   virtual ~AbstractPlug();
 
   virtual void init(){};
@@ -74,13 +76,13 @@ public:
   std::string name() const {return _name;};
   bool name(std::string newName);
 
-  bool exposed() const {return _exposed;}
-  void exposed(bool exp);
+//  bool exposed() const {return _exposed;}
+//  void exposed(bool exp);
 
   void forwardPlug(AbstractPlug * forwardPlug) { _forwardPlug = forwardPlug; }
   AbstractPlug* forwardPlug(){ return _forwardPlug; }
 
-  virtual AbstractPlug* clone(Gear* parent)=0;
+//  virtual AbstractPlug* clone(Gear* parent)=0;
 
 protected:
   std::list<AbstractPlug*> _connectedPlugs;
@@ -97,7 +99,10 @@ private:
   eInOut _inOut;
   std::string _name;
 
-  bool _exposed;//! the plug is exposed outside of a metagear
+//  bool _exposed;//! the plug is exposed outside of a metagear
+
+protected:
+  GstPad* _pad;
 
 };
 

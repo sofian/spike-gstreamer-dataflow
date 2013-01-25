@@ -2,6 +2,9 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "Gear.h"
+#include "Engine.h"
+
 bool stop = false;
 void interrupt(int sig) {
   stop = true;
@@ -13,36 +16,32 @@ int main(int argc, char** argv) {
 
   gst_init(&argc, &argv);
 
-  GstPipeline* pipeline = (GstPipeline*)gst_pipeline_new("drone");
+  Engine* engine = new Engine();
+
   GstElement* source    = gst_element_factory_make("audiotestsrc",  "source");
   GstElement* sink      = gst_element_factory_make("autoaudiosink", "sink");
 
-  if (!pipeline || !source || !sink) {
-    g_printerr ("One element could not be created. Exiting.\n");
-    return -1;
-  }
+  Gear* sourceGear = new Gear(source);
+  Gear* sinkGear   = new Gear(sink);
 
-  gst_bin_add(GST_BIN(pipeline), source);
-  gst_bin_add(GST_BIN(pipeline), sink);
+  engine->addGear(sourceGear);
+  engine->addGear(sinkGear);
 
-  GstPad* sourceOut = gst_element_get_static_pad(source, "src");
-  GstPad* sinkIn    = gst_element_get_static_pad(sink, "sink");
-
-  gst_pad_link(sourceOut, sinkIn);
+  AbstractPlug* out = sourceGear->getOutput("src");
+  AbstractPlug* in  = sinkGear->getInput("sink");
+  out->connect(in);
 
 //  gst_object_unref (GST_OBJECT (sourceOut));
 //  gst_object_unref (GST_OBJECT (sinkIn));
 
   g_print ("Now playing\n");
-  gst_element_set_state (GST_ELEMENT(pipeline), GST_STATE_PLAYING);
+  engine->play();
 
   while (!stop) {
     usleep(1);
   }
 
-  gst_element_set_state (GST_ELEMENT(pipeline), GST_STATE_PAUSED);
-
-  gst_object_unref (GST_OBJECT (pipeline));
+  engine->pause();
 
   return 0;
 }

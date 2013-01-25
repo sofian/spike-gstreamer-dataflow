@@ -18,18 +18,48 @@
  */
 
 #include "Gear.h"
+#include <algorithm>
 
-Gear::Gear(std::string type, std::string name) :
-_type(type),
-_name(name),
-_ready(false)
+
+Gear::Gear(GstElement* element) :
+_ready(false),
+_element(element)
 {
+  GstIterator* it;
+  GstIteratorResult result = GST_ITERATOR_OK;
+  GValue value = G_VALUE_INIT;
+
+  it = gst_element_iterate_sink_pads(_element);
+
+  while ( (result = gst_iterator_next(it, &value)) == GST_ITERATOR_OK)
+  {
+    GstPad* pad = GST_PAD_CAST(g_value_peek_pointer(&value));
+    std::cout << gst_pad_get_name(pad) << std::endl;
+    addPlug(new PlugIn<AbstractType>(pad, this, gst_pad_get_name(pad), true, new AbstractType()));
+    gst_object_unref(pad);
+    g_value_unset(&value);
+  }
+  gst_iterator_free(it);
+
+  it = gst_element_iterate_src_pads(_element);
+  while ( (result = gst_iterator_next(it, &value)) == GST_ITERATOR_OK)
+  {
+    GstPad* pad = GST_PAD_CAST(g_value_peek_pointer(&value));
+    std::cout << gst_pad_get_name(pad) << std::endl;
+    addPlug(new PlugOut<AbstractType>(pad, this, gst_pad_get_name(pad), true, new AbstractType()));
+    gst_object_unref(pad);
+    g_value_unset(&value);
+  }
+  gst_iterator_free(it);
+
+  gst_object_ref(GST_OBJECT(_element));
 }
 
 Gear::~Gear()
 {    
   for (std::list<AbstractPlug*>::iterator it=_plugs.begin(); it != _plugs.end(); ++it)
     delete (*it);
+  gst_object_unref(GST_OBJECT(_element));
 }
 
 void Gear::prePlay()
@@ -44,9 +74,9 @@ void Gear::postPlay()
 
 void Gear::init()
 {
-  std::cout << "__________________________________________" << std::endl;
-  std::cout << _type << std::endl;
-  std::cout << "------------------------------------------" << std::endl;
+//  std::cout << "__________________________________________" << std::endl;
+//  std::cout << _type << std::endl;
+//  std::cout << "------------------------------------------" << std::endl;
 
   for (std::list<AbstractPlug*>::iterator it=_plugs.begin(); it != _plugs.end(); ++it)
     (*it)->init();
@@ -101,3 +131,65 @@ AbstractPlug* Gear::addPlug(AbstractPlug* plug)
   return plug;    
 }
 
+
+void Gear::getInputs(std::list<AbstractPlug*> &inputs) const
+{
+  inputs.clear();
+  for (std::list<AbstractPlug*>::const_iterator it=_plugs.begin(); it != _plugs.end(); ++it)
+  {
+    if ((*it)->inOut() == IN )
+      inputs.push_back(*it);
+  }
+}
+
+void Gear::getOutputs(std::list<AbstractPlug*> &outputs) const
+{
+  outputs.clear();
+  for (std::list<AbstractPlug*>::const_iterator it=_plugs.begin(); it != _plugs.end(); ++it)
+  {
+    if ((*it)->inOut() == OUT)
+      outputs.push_back(*it);
+  }
+}
+
+AbstractPlug* Gear::getInput(std::string name) const
+{
+  std::list<AbstractPlug*> inputs;
+  getInputs(inputs);
+
+  int (*pf)(int)=tolower;
+  std::string nameAlower=name;
+  transform(nameAlower.begin(), nameAlower.end(), nameAlower.begin(), pf);
+
+  for (std::list<AbstractPlug*>::const_iterator it = inputs.begin();it!=inputs.end();++it)
+  {
+    std::string nameBlower=(*it)->name();
+    transform(nameBlower.begin(), nameBlower.end(), nameBlower.begin(), pf);
+
+    if (nameAlower == nameBlower)
+      return(*it);
+  }
+
+  return NULL;
+}
+
+AbstractPlug* Gear::getOutput(std::string name) const
+{
+  std::list<AbstractPlug*> outputs;
+  getOutputs(outputs);
+
+  int (*pf)(int)=tolower;
+  std::string nameAlower=name;
+  transform(nameAlower.begin(), nameAlower.end(), nameAlower.begin(), pf);
+
+  for (std::list<AbstractPlug*>::const_iterator it = outputs.begin();it!=outputs.end();++it)
+  {
+    std::string nameBlower=(*it)->name();
+    transform(nameBlower.begin(), nameBlower.end(), nameBlower.begin(), pf);
+
+    if (nameAlower == nameBlower)
+      return(*it);
+  }
+
+  return NULL;
+}
