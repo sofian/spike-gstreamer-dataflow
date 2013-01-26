@@ -31,7 +31,9 @@ AbstractPlug::AbstractPlug(GstPad* pad, Gear* parent, eInOut inOut, std::string 
   _inOut(inOut),
   _name(name),
 //  _exposed(false),
-  _pad(pad)
+
+  _pad(pad),
+_blockingPadProbeId(0)
 {
   //une plug a besoin d'un parent
   ASSERT_ERROR(parent!=NULL);
@@ -94,14 +96,30 @@ bool AbstractPlug::canConnect(AbstractPlug *plug, bool onlyTypeCheck)
 bool AbstractPlug::connect(AbstractPlug *plug)
 //! logique de connection de base
 {
-//
-//  if (!canConnect(plug))
-//    return false;
-
+  // Assign src and sink.
+  GstPad* src;
+  GstPad* sink;
   if (this->inOut() == IN)
-    gst_pad_link(plug->_pad, _pad);
+  {
+    src = plug->_pad;
+    sink = _pad;
+  }
   else
-    gst_pad_link(_pad, plug->_pad);
+  {
+    src = _pad;
+    sink = plug->_pad;
+  }
+
+  // TODO: verify if already linked
+
+  // Link source to sink.
+  gst_pad_link(src, sink);
+
+  // Remove blocking pad if there is one.
+  // XXX: Y a peut-etre possibilite d'une confusion ici si le AbstractPlug est un PlugIn (ie. sink)
+  if (_blockingPadProbeId != 0 && gst_pad_is_blocked(src))
+    gst_pad_remove_probe(src,_blockingPadProbeId);
+
 
   //remove exposition
 //  if(this->inOut() == IN)
@@ -154,11 +172,10 @@ bool AbstractPlug::disconnect(AbstractPlug *plug)
 //  _parent->onPlugDisconnected(this, plug);
 //  plug->_parent->onPlugDisconnected(plug, this);
 
-
   if (this->inOut() == IN)
-    gst_pad_unlink(plug->_pad, _pad);
+    _unlinkPads(plug->_pad, _pad);
   else
-    gst_pad_unlink(_pad, plug->_pad);
+    _unlinkPads(_pad, plug->_pad);
 
   //laisser la chance au class derive d'executer leur logique supplementaire
   onDisconnection(plug);
@@ -248,3 +265,21 @@ bool AbstractPlug::name(std::string newName)
 //
 //   _sleeping=s;
 //}
+
+void AbstractPlug::_unlinkPads(GstPad* src, GstPad* sink)
+{
+
+  _blockingPadProbeId = gst_pad_add_probe (src, (GstPadProbeType)GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
+                        AbstractPlug::padProbeCallback, (gpointer) sink, NULL);
+}
+
+
+GstPadProbeReturn AbstractPlug::padProbeCallback (GstPad * src, GstPadProbeInfo * info, gpointer data)
+{
+  GST_DEBUG_OBJECT (src, "pad is blocked now");
+  std::cout << "pad blocked" << std::endl;
+
+  gst_pad_unlink(src, (GstPad*)data);
+
+  return GST_PAD_PROBE_OK;
+}

@@ -84,7 +84,13 @@ public:
 
 //  virtual AbstractPlug* clone(Gear* parent)=0;
 
+public:
+  static GstPadProbeReturn padProbeCallback (GstPad * src, GstPadProbeInfo * info, gpointer data);
+
 protected:
+  // Safely unlink pads.
+  void _unlinkPads(GstPad* src, GstPad* sink);
+
   std::list<AbstractPlug*> _connectedPlugs;
   AbstractType *_abstractType;
   AbstractType *_abstractDefaultType;
@@ -94,7 +100,7 @@ protected:
   //! if true, this plug is not absolutly needed (connected,ready) for the parent gear to be ready.
   bool _mandatory;
   bool _sleeping;
-	
+
 private:
   eInOut _inOut;
   std::string _name;
@@ -103,6 +109,8 @@ private:
 
 protected:
   GstPad* _pad;
+  gulong _blockingPadProbeId;
+
 
 };
 
