@@ -21,6 +21,7 @@
 #define __ABSTRACTPLUG_INCLUDED
 
 #include "AbstractType.h"
+#include "GstUtils.h"
 
 #include <iostream> // XXX debug
 #include <vector>
@@ -83,14 +84,7 @@ public:
   AbstractPlug* forwardPlug(){ return _forwardPlug; }
 
 //  virtual AbstractPlug* clone(Gear* parent)=0;
-
-public:
-  static GstPadProbeReturn padProbeCallback (GstPad * src, GstPadProbeInfo * info, gpointer data);
-
 protected:
-  // Safely unlink pads.
-  void _unlinkPads(GstPad* src, GstPad* sink);
-
   std::list<AbstractPlug*> _connectedPlugs;
   AbstractType *_abstractType;
   AbstractType *_abstractDefaultType;
@@ -108,10 +102,10 @@ private:
 //  bool _exposed;//! the plug is exposed outside of a metagear
 
 protected:
-  GstPad* _pad;
+  GstPad* _pad; // the GStreamer pad that is represented by this plug
   gulong _blockingPadProbeId;
-
-
+  GstElement* _tee;
+  std::list<GstElement*> _queues;
 };
 
 #endif //__ABSTRACTPLUG_INCLUDED

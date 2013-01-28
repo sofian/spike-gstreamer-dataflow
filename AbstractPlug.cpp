@@ -33,7 +33,8 @@ AbstractPlug::AbstractPlug(GstPad* pad, Gear* parent, eInOut inOut, std::string 
 //  _exposed(false),
 
   _pad(pad),
-_blockingPadProbeId(0)
+_blockingPadProbeId(0),
+_tee(NULL)
 {
   //une plug a besoin d'un parent
   ASSERT_ERROR(parent!=NULL);
@@ -96,30 +97,22 @@ bool AbstractPlug::canConnect(AbstractPlug *plug, bool onlyTypeCheck)
 bool AbstractPlug::connect(AbstractPlug *plug)
 //! logique de connection de base
 {
-  // Assign src and sink.
-  GstPad* src;
-  GstPad* sink;
   if (this->inOut() == IN)
+    plug->connect(this);
+
+  // Check if we need to add tee and queues
+  if (_connectedPlugs.size() == 0)
   {
-    src = plug->_pad;
-    sink = _pad;
+
   }
   else
   {
-    src = _pad;
-    sink = plug->_pad;
+
   }
 
-  // TODO: verify if already linked
-
   // Link source to sink.
-  gst_pad_link(src, sink);
-
-  // Remove blocking pad if there is one.
-  // XXX: Y a peut-etre possibilite d'une confusion ici si le AbstractPlug est un PlugIn (ie. sink)
-  if (_blockingPadProbeId != 0 && gst_pad_is_blocked(src))
-    gst_pad_remove_probe(src,_blockingPadProbeId);
-
+  GstUtils::safeConnect(_pad, plug->_pad, &_blockingPadProbeId);
+  //gst_pad_link(this->_pad, plug->_pad);
 
   //remove exposition
 //  if(this->inOut() == IN)
@@ -127,16 +120,6 @@ bool AbstractPlug::connect(AbstractPlug *plug)
 
 //  if(plug->inOut() == IN)
 //    plug->exposed(false);
-
-//  AbstractPlug * deepestPlug = 0;
-//  for(deepestPlug = this; deepestPlug->_forwardPlug != 0; deepestPlug = deepestPlug->_forwardPlug) ;
-//  if(deepestPlug != this)
-//    deepestPlug->_connectedPlugs.push_back(plug);
-//
-//  AbstractPlug * deepestOtherPlug = 0;
-//  for(deepestOtherPlug = plug; deepestOtherPlug->_forwardPlug != 0; deepestOtherPlug = deepestOtherPlug->_forwardPlug) ;
-//  if(deepestOtherPlug != plug)
-//    deepestOtherPlug->_connectedPlugs.push_back(this);
 
   //ajouter la nouvelle plug a nos connections
   _connectedPlugs.push_back(plug);
@@ -161,6 +144,10 @@ bool AbstractPlug::connect(AbstractPlug *plug)
 bool AbstractPlug::disconnect(AbstractPlug *plug)
 //! logique de deconnection de base
 {
+  if (this->inOut() == IN)
+    plug->disconnect(this);
+
+
 //  if (!plug)
 //    return false;
 
@@ -172,28 +159,17 @@ bool AbstractPlug::disconnect(AbstractPlug *plug)
 //  _parent->onPlugDisconnected(this, plug);
 //  plug->_parent->onPlugDisconnected(plug, this);
 
-  if (this->inOut() == IN)
-    _unlinkPads(plug->_pad, _pad);
-  else
-    _unlinkPads(_pad, plug->_pad);
+  GstUtils::safeDisconnect(_pad, plug->_pad, &_blockingPadProbeId);
+//  _unlinkPads(this->pad, plug->_pad);
 
   //laisser la chance au class derive d'executer leur logique supplementaire
   onDisconnection(plug);
   plug->onDisconnection(this);
 
   //remove this plug from our connections
-//  _connectedPlugs.remove(plug);
-//  AbstractPlug * deepestPlug = 0;
-//  for(deepestPlug = this; deepestPlug->_forwardPlug != 0; deepestPlug = deepestPlug->_forwardPlug) ;
-//  if(deepestPlug != this)
-//    deepestPlug->_connectedPlugs.remove(plug);
-//
-//  //remove ourself from the other plug connections
-//  plug->_connectedPlugs.remove(this);
-//  AbstractPlug * deepestOtherPlug = 0;
-//  for(deepestOtherPlug = plug; deepestOtherPlug->_forwardPlug != 0; deepestOtherPlug = deepestOtherPlug->_forwardPlug) ;
-//  if(deepestOtherPlug != plug)
-//    deepestOtherPlug->_connectedPlugs.remove(this);
+  _connectedPlugs.remove(plug);
+  //remove ourself from the other plug connections
+  plug->_connectedPlugs.remove(this);
 
   return true;
 }
@@ -265,21 +241,3 @@ bool AbstractPlug::name(std::string newName)
 //
 //   _sleeping=s;
 //}
-
-void AbstractPlug::_unlinkPads(GstPad* src, GstPad* sink)
-{
-
-  _blockingPadProbeId = gst_pad_add_probe (src, (GstPadProbeType)GST_PAD_PROBE_TYPE_BLOCK_DOWNSTREAM,
-                        AbstractPlug::padProbeCallback, (gpointer) sink, NULL);
-}
-
-
-GstPadProbeReturn AbstractPlug::padProbeCallback (GstPad * src, GstPadProbeInfo * info, gpointer data)
-{
-  GST_DEBUG_OBJECT (src, "pad is blocked now");
-  std::cout << "pad blocked" << std::endl;
-
-  gst_pad_unlink(src, (GstPad*)data);
-
-  return GST_PAD_PROBE_OK;
-}
