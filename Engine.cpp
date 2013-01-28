@@ -23,6 +23,11 @@ Engine::Engine() : _pipeline(0) {
   _pipeline = (GstPipeline*)gst_pipeline_new("drone");
 }
 
+Engine& Engine::instance() {
+  static Engine inst;
+  return inst;
+}
+
 Engine::~Engine() {
   gst_object_unref(_pipeline);
 }
@@ -37,15 +42,10 @@ void Engine::pause() {
 }
 
 void Engine::addGear(Gear* gear) {
+  _addElement(gear->_element);
   //_gears.push_back(gear);
 
   // State of added element must be the same as current state of pipeline.
-  GstState state;
-  ASSERT_ERROR( gst_element_get_state(GST_ELEMENT(_pipeline), &state, NULL, GST_CLOCK_TIME_NONE) != GST_STATE_CHANGE_FAILURE);
-  gst_element_set_state(gear->_element, state);
-
-  // Add to pipeline.
-  gst_bin_add(GST_BIN(_pipeline), gear->_element);
 }
 
 void Engine::removeGear(Gear* gear) {
@@ -58,4 +58,16 @@ void Engine::removeGear(Gear* gear) {
   // after removing, you need to call gst_object_ref() before removing it from the bin. "
   // Source: http://gstreamer.freedesktop.org/data/doc/gstreamer/head/gstreamer/html/GstBin.html#gst-bin-remove
   gst_bin_remove(GST_BIN(_pipeline), gear->_element);
+}
+
+void Engine::_addElement(GstElement* element) {
+  GstState state;
+  ASSERT_ERROR( gst_element_get_state(GST_ELEMENT(_pipeline), &state, NULL, GST_CLOCK_TIME_NONE) != GST_STATE_CHANGE_FAILURE);
+  gst_element_set_state(element, state);
+
+  // Add to pipeline.
+  gst_bin_add(GST_BIN(_pipeline), element);
+}
+
+void Engine::_removeElement(GstElement* element) {
 }

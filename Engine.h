@@ -26,15 +26,24 @@
 #include "Gear.h"
 
 class Engine {
-public:
+private:
   Engine();
-  virtual ~Engine();
+  Engine(Engine const&);
+  void operator=(Engine const&);
+  ~Engine();
 
+public:
   void play();
   void pause();
   void addGear(Gear* gear);
   void removeGear(Gear* gear);
 
+  static Engine& instance();
+
+  GstPipeline* pipeline() const { return _pipeline; }
+
+  void _addElement(GstElement* element);
+  void _removeElement(GstElement* element);
 protected:
   GstPipeline* _pipeline;
 //  GstBus*      _bus;

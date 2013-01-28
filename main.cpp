@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 
   gst_init(&argc, &argv);
 
-  Engine* engine = new Engine();
+  Engine& engine = Engine::instance();
 
   GstElement* source    = gst_element_factory_make("audiotestsrc",  "source");
   GstElement* sink      = gst_element_factory_make("autoaudiosink", "sink");
@@ -29,8 +29,8 @@ int main(int argc, char** argv) {
   Gear* sourceGear = new Gear(source);
   Gear* sinkGear   = new Gear(sink);
 
-  engine->addGear(sourceGear);
-  engine->addGear(sinkGear);
+  engine.addGear(sourceGear);
+  engine.addGear(sinkGear);
 
   AbstractPlug* out = sourceGear->getOutput("src");
   AbstractPlug* in  = sinkGear->getInput("sink");
@@ -40,7 +40,13 @@ int main(int argc, char** argv) {
 //  gst_object_unref (GST_OBJECT (sinkIn));
 
   g_print ("Now playing\n");
-  engine->play();
+  engine.play();
+
+  for (int i=0; i<100; i++)
+  {
+    out->disconnect(in);
+    out->connect(in);
+  }
 
   // Marchera pas. Pour arranger il faut checker ceci:
   // http://gstreamer.freedesktop.org/data/doc/gstreamer/head/manual/html/section-dynamic-pipelines.html
@@ -51,7 +57,7 @@ int main(int argc, char** argv) {
     out->connect(in);
   }
 
-  engine->pause();
+  engine.pause();
 
   return 0;
 }
