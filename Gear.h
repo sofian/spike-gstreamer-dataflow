@@ -81,6 +81,8 @@ protected:
 //  std::string _name;//! unique name of this gear in a schema
 
   bool _ready;
+
+  // In the end it won't necessarily be one gear = one element but this is what we do for now
   GstElement* _element;
 
   friend class Engine;
