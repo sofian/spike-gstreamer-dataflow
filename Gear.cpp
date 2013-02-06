@@ -26,6 +26,7 @@ Gear::Gear(GstElement* element) :
 _ready(false),
 _element(element)
 {
+  ASSERT_ERROR( element );
   GstIterator* it;
   GstIteratorResult result = GST_ITERATOR_OK;
   GValue value = G_VALUE_INIT;

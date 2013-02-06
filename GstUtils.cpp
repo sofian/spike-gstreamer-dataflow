@@ -33,7 +33,7 @@ void GstUtils::safeConnect(GstPad* src, GstPad* sink, gulong* blockingProbeId)
 
   // Remove blocking pad if there is one.
   // XXX: Y a peut-etre possibilite d'une confusion ici si le AbstractPlug est un PlugIn (ie. sink)
-  if (blockingProbeId && *blockingProbeId != 0)
+  if (blockingProbeId && *blockingProbeId != 0 && gst_pad_is_blocking(src))
   {
     // XXX: rien ne garantiti que le blocking probe id ne soit pas justement zero
     // XXX: Y a peut-etre possibilite d'une confusion ici si le AbstractPlug est un PlugIn (ie. sink)
