@@ -25,6 +25,8 @@
 #include "error.h"
 #include "Gear.h"
 
+class Gear;
+
 class Engine {
 private:
   Engine();
@@ -42,12 +44,16 @@ public:
 
   GstPipeline* pipeline() const { return _pipeline; }
 
+  // Creates an element and adds it to the pipeline.
+  GstElement* createElement(const char* factoryName);
+  //  void destroyElement(GstElement* element);
+
   void _addElement(GstElement* element);
   void _removeElement(GstElement* element);
 protected:
   GstPipeline* _pipeline;
-//  GstBus*      _bus;
-//  std::list<Gear*> _gears;
+  //  GstBus*      _bus;
+  //  std::list<Gear*> _gears;
 };
 
 #endif /* ENGINE_H_ */

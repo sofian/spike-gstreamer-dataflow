@@ -20,15 +20,16 @@
 #ifndef GEAR_INCLUDED
 #define GEAR_INCLUDED
 
+#include <gst/gst.h>
+
 #include <string>
 #include <list>
 #include <vector>
-
-#include "Plug.h"
-
 #include <map>
 
-#include <gst/gst.h>
+#include "AbstractPlug.h"
+
+class AbstractPlug;
 
 /**
  * Gear is the atomic processing unit of the dataflow and the base class for all gears.
@@ -67,8 +68,8 @@ protected:
   virtual void internalPrePlay(){}  
   virtual void internalPostPlay(){}
   
-  friend bool AbstractPlug::connect(AbstractPlug *plug);
-  friend bool AbstractPlug::disconnect(AbstractPlug *plug);
+  //friend bool AbstractPlug::connect(AbstractPlug *plug);
+  //friend bool AbstractPlug::disconnect(AbstractPlug *plug);
 
   AbstractPlug* addPlug(AbstractPlug* plug);
   void deletePlug(AbstractPlug *plug);

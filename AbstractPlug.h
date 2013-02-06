@@ -20,22 +20,22 @@
 #ifndef __ABSTRACTPLUG_INCLUDED
 #define __ABSTRACTPLUG_INCLUDED
 
-#include "AbstractType.h"
-#include "GstUtils.h"
+#include <gst/gst.h>
 
-#include <iostream> // XXX debug
-#include <vector>
+#include "GstUtils.h"
+#include "AbstractType.h"
+#include "Gear.h"
+
 #include <string>
+#include <iostream> // XXX debug
 #include <list>
 
-#include <gst/gst.h>
+class Gear;
 
 enum eInOut
 {
   IN, OUT
 };
-
-class Gear;
 
 class AbstractPlug
 {
@@ -51,14 +51,14 @@ public:
   void disconnectAll();
 
   bool connected() const { return !_connectedPlugs.empty();};
-//  void sleeping(bool );
-//
-//  bool sleeping(){return _sleeping;}
+  //  void sleeping(bool );
+  //
+  //  bool sleeping(){return _sleeping;}
   virtual bool ready() const =0;	//!behavior defined in input and output plug
 
   bool mandatory(){return _mandatory;}
   void mandatory(bool v){_mandatory=v;}  
-  
+
   virtual void onConnection(AbstractPlug*){};//!overloader pour ajouter fonctionnalites APRES une bonne connection
   virtual void onDisconnection(AbstractPlug*){};//!overloader pour ajouter fonctionnalites AVANT deconnection
 
@@ -77,19 +77,19 @@ public:
   std::string name() const {return _name;};
   bool name(std::string newName);
 
-//  bool exposed() const {return _exposed;}
-//  void exposed(bool exp);
+  //  bool exposed() const {return _exposed;}
+  //  void exposed(bool exp);
 
   void forwardPlug(AbstractPlug * forwardPlug) { _forwardPlug = forwardPlug; }
   AbstractPlug* forwardPlug(){ return _forwardPlug; }
 
-//  virtual AbstractPlug* clone(Gear* parent)=0;
+  //  virtual AbstractPlug* clone(Gear* parent)=0;
 protected:
   std::list<AbstractPlug*> _connectedPlugs;
   AbstractType *_abstractType;
   AbstractType *_abstractDefaultType;
   AbstractPlug* _forwardPlug;
-	
+
   Gear *_parent;
   //! if true, this plug is not absolutly needed (connected,ready) for the parent gear to be ready.
   bool _mandatory;
@@ -99,7 +99,7 @@ private:
   eInOut _inOut;
   std::string _name;
 
-//  bool _exposed;//! the plug is exposed outside of a metagear
+  //  bool _exposed;//! the plug is exposed outside of a metagear
 
 protected:
   GstPad* _pad; // the GStreamer pad that is represented by this plug

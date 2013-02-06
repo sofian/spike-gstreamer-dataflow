@@ -66,8 +66,20 @@ void Engine::_addElement(GstElement* element) {
   gst_element_set_state(element, state);
 
   // Add to pipeline.
-  gst_bin_add(GST_BIN(_pipeline), element);
+  ASSERT_ERROR( gst_bin_add(GST_BIN(_pipeline), element) );
 }
 
 void Engine::_removeElement(GstElement* element) {
+  ASSERT_ERROR( gst_bin_remove(GST_BIN(_pipeline), element) );
 }
+
+GstElement* Engine::createElement(const char* factoryName) {
+  GstElement* element = gst_element_factory_make(factoryName, NULL);
+  ASSERT_ERROR( element != NULL);
+  _addElement(element);
+  return element;
+}
+//
+//void Engine::destroyElement(GstElement* element) {
+//  _removeElement(element);
+//}

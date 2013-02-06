@@ -25,7 +25,6 @@
 /**
  * This class is a template instance of an <code>AbstractPlug</code>.
  */
-
 template <class T>
 class PlugOut : public AbstractPlug
 {
@@ -56,10 +55,10 @@ public:
 
   void init() {}
 
-//  AbstractPlug *clone(Gear* parent)
-//  {
-//    return new PlugOut<T>(parent, name(), _mandatory);
-//  }
+  //  AbstractPlug *clone(Gear* parent)
+  //  {
+  //    return new PlugOut<T>(parent, name(), _mandatory);
+  //  }
 
 };
 
@@ -89,7 +88,7 @@ public:
       if (_mandatory && !firstConnectedPlug()->parent()->ready())
         return false;
 
-//      return !(firstConnectedPlug()->sleeping());
+      //      return !(firstConnectedPlug()->sleeping());
     }
 
     //not mandatory and not connected
@@ -116,7 +115,7 @@ public:
 
     dynamic_cast<PlugIn<T>*>(deepestPlug)->setType(_abstractDefaultType);
 
-/*    if(_forwardPlug)
+    /*    if(_forwardPlug)
       dynamic_cast<PlugIn<T>*>(_forwardPlug)->setType(_internalType);
     else
       setType(_internalType);*/
@@ -132,10 +131,10 @@ public:
   //! Returns a clone of the type.
   T* cloneType() const { return _abstractType->clone(); }
 
-//  AbstractPlug *clone(Gear* parent)
-//  {
-//    return new PlugIn<T>(parent, name(), _mandatory);
-//  }
+  //  AbstractPlug *clone(Gear* parent)
+  //  {
+  //    return new PlugIn<T>(parent, name(), _mandatory);
+  //  }
 
 
 protected:

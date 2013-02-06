@@ -22,6 +22,7 @@
 
 #include <gst/gst.h>
 #include "error.h"
+#include "Engine.h"
 
 class GstUtils {
 public:
